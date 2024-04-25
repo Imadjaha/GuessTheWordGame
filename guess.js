@@ -182,29 +182,60 @@ function handleGuesses() {
 
 }
 
-function getHint(){
-  if (numberOfHints > 0 ){
-    numberOfHints-- ;
-    numberOfUsedHints++ ;
-   
+
+
+function getHint() {
+  if (numberOfHints > 0) {
+    numberOfHints--;
+    numberOfUsedHints++;
+
     document.querySelector(".hint span").innerHTML = numberOfHints;
-
   }
-  if(numberOfHints === 0 ) {getHintButton.disabled = true;}
+  if (numberOfHints === 0) {
+    getHintButton.disabled = true;
+  }
 
-  const enabledInputs = document.querySelectorAll("input:not([disabled])") ;
-  const emptyEnabledInputs  = Array.from(enabledInputs).filter((input) => input.value === "");
+  const enabledInputs = document.querySelectorAll("input:not([disabled])");
+  const emptyEnabledInputs = Array.from(enabledInputs).filter(
+    (input) => input.value === ""
+  );
 
-  if(emptyEnabledInputs.length > 0){
+  // Check if there are empty input fields
+  if (emptyEnabledInputs.length > 0) {
+    // Select a random empty input field
     const randomIndex = Math.floor(Math.random() * emptyEnabledInputs.length);
     const randomInput = emptyEnabledInputs[randomIndex];
-    const indexToFill =  Array.from(enabledInputs).indexOf(randomInput);
+    // Get the index of the selected input field
+    const indexToFill = Array.from(enabledInputs).indexOf(randomInput);
 
-    if(indexToFill !== -1){
+    if (indexToFill !== -1) {
       randomInput.value = wordToGuess[indexToFill].toUpperCase();
+      // Update the class to reflect the change visually
+      randomInput.classList.remove("no");
+      if (randomInput.value.toLowerCase() === wordToGuess[indexToFill]) {
+        randomInput.classList.add("yes-in-place");
+      } else {
+        randomInput.classList.add("not-in-place");
+      }
+    }
+  } else {
+    // Find the first incorrect letter not in place
+    const incorrectInput = Array.from(enabledInputs).find(
+      (input) =>
+        input.classList.contains("not-in-place") && input.value !== wordToGuess[input.id.split("-")[2] - 1]
+    );
+    // If there's an incorrect input, replace its value with the correct one
+    if (incorrectInput) {
+      const indexToFill = Array.from(enabledInputs).indexOf(incorrectInput);
+      incorrectInput.value = wordToGuess[indexToFill].toUpperCase();
+      // Update the class to reflect the change visually
+      incorrectInput.classList.remove("no");
+      incorrectInput.classList.remove("not-in-place");
+      incorrectInput.classList.add("yes-in-place");
     }
   }
 }
+
 
 
 function handleBackspace(event){
@@ -212,14 +243,24 @@ function handleBackspace(event){
   if(event.key === "Backspace"){
     const inputs = document.querySelectorAll("input:not([disabled])");
     const currentIndex = Array.from(inputs).indexOf(document.activeElement);
+   
 
-    if(currentIndex > 0){
-      const currentInput = inputs[currentIndex] ;
+    if (currentIndex >= 0) {
+      const currentInput = inputs[currentIndex];
       const prevInput = inputs[currentIndex - 1];
-      currentInput.value  = "";
-      prevInput.value = "";
-      prevInput.focus();
+      
+      // Check if the current input is empty
+      if (currentInput.value === "") {
+        // If it's empty, delete the previous character and move focus to the previous input
+        currentInput.value = "";
+        prevInput.focus();
+        event.preventDefault(); // Prevent default behavior of the backspace key
+      } else {
+        // If it's not empty, delete the current character
+        currentInput.value = "";
+      }
     }
+
   }
 }
 
